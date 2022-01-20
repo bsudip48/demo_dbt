@@ -1,0 +1,26 @@
+demo_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      keyfile: env\dbt-user-dev-creds.json
+      project: "{{ env_var('DBT_GCP_PROJECT_ID_DEV') }}"
+      dataset: dbt
+      location: US
+      priority: interactive
+      threads: 1
+      fixed_retries: 1
+      timeout_seconds: 300
+    
+    prod:
+      type: bigquery
+      method: service-account
+      keyfile: env\dbt-user-prod-creds.json
+      project: "{{ env_var('DBT_GCP_PROJECT_ID_PROD') }}"
+      dataset: dbt
+      location: US
+      priority: interactive
+      threads: 1
+      fixed_retries: 1
+      timeout_seconds: 300
