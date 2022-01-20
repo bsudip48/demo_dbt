@@ -1,0 +1,93 @@
+version: 2
+
+sources:
+  - name: dbt_raw
+    description: Incoming data in raw form
+    tables:
+      
+      - name: customers
+        description: One record per customer
+        config:
+          meta:
+            owner: Sudip
+            email: bsudip48@yahoo.com
+            contains_pii: true
+        columns:
+          - name: ID
+            description: Primary key
+            tests:
+              - unique
+              - not_null
+      
+      - name: orders
+        description: One record per order
+        config:
+          meta:
+            owner: Sudip
+            email: bsudip48@yahoo.com
+            contains_pii: false
+        columns:
+          - name: ID
+            description: Primary key
+            tests:
+              - unique
+              - not_null
+          - name: USER_ID
+            tests:
+              - not_null
+              - relationships:
+                  to: source('dbt_raw', 'customers')
+                  field: ID
+          - name: ORDER_DATE
+            tests:
+              - not_null
+          - name: STATUS
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ['placed', 'shipped', 'completed', 'return_pending', 'returned']
+          - name: _etl_loaded_at
+            description: Load Timestamp
+            tests:
+              - not_null
+      
+      - name: payments
+        description: One record per payment
+        config:
+          meta:
+            owner: Sudip
+            email: bsudip48@yahoo.com
+            contains_pii: false
+        columns:
+          - name: id
+            description: Primary key
+            tests:
+              - unique
+              - not_null
+          - name: orderid
+            tests:
+              - not_null
+              - relationships:
+                  to: source('dbt_raw', 'orders')
+                  field: ID
+          - name: paymentmethod
+            tests:
+              - not_null
+          - name: status
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ['success', 'fail']
+          - name: amount
+            tests:
+              - not_null
+          - name: _batched_at
+            description: Load Timestamp
+            tests:
+              - not_null
+        tests:
+          - inner_relationship_check:
+              source_model: source('dbt_raw', 'orders')
+              source_column_name: ID
+              related_model: source('dbt_raw', 'payments')
+              related_column_name: orderid

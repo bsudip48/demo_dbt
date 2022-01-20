@@ -1,0 +1,90 @@
+version: 2
+
+models:
+  - name: customer_orders
+    description: Orders data for each customer
+    config:
+      meta:
+        owner: Sudip
+        email: bsudip48@yahoo.com
+        contains_pii: true
+    columns:
+      - name: CUSTOMER_ID
+        description: Primary key
+        tests:
+          - unique
+          - not_null
+      - name: NUMBER_OF_ORDERS
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.equal_rowcount:
+          compare_model: source('dbt_raw', 'customers')
+  
+  - name: customer_payments
+    description: Payments data for each customer
+    config:
+      meta:
+        owner: Sudip
+        email: bsudip48@yahoo.com
+        contains_pii: false
+    columns:
+      - name: CUSTOMER_ID
+        description: Composite primary key
+        tests:
+          - not_null
+      - name: PAYMENT_METHOD
+        description: Composite primary key
+        tests:
+          - not_null
+      - name: TOTAL_AMOUNT
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - CUSTOMER_ID
+            - PAYMENT_METHOD
+  
+  - name: order_payments
+    description: Payments data for each order
+    config:
+      meta:
+        owner: Sudip
+        email: bsudip48@yahoo.com
+        contains_pii: false
+    columns:
+      - name: ORDER_ID
+        description: Primary key
+        tests:
+          - unique
+          - not_null
+      - name: TOTAL_ORDER_VALUE
+        tests:
+          - not_null
+      - name: NUM_PAYMENTS
+        tests:
+          - not_null
+      - name: NUM_PAYMENT_METHODS
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.equal_rowcount:
+          compare_model: source('dbt_raw', 'orders')
+  
+  - name: payments_aggregate_by_order
+    description: Aggregated payments data for each order
+    config:
+      meta:
+        owner: Sudip
+        email: bsudip48@yahoo.com
+        contains_pii: false
+    columns:
+      - name: ORDER_ID
+        description: Primary key
+        tests:
+          - unique
+          - not_null
+    tests:
+      - dbt_utils.equal_rowcount:
+          compare_model: source('dbt_raw', 'orders')
